@@ -38,10 +38,10 @@ The S/MIME standard specifies a message format for signed and encrypted messagin
 
 the difference between private and public keys is one is used to encrypt ,while the other is used to decrypt.  
 
-1. public key:  
+1. public key  
 A public key is used to encrypt information essentially making it unreachable to anyone who is not the intended recipient .
 
-2. private key:   
+1. private key   
 conversely a private key accessible only by the person receiving the information ,therefore would be the only person able to successfully decrypt what was encrypt.  
 
 Together public and private keys ensure information data and communications are encrypt before it is then safely transmitted and decrypted by the appropriate party.  
@@ -50,7 +50,11 @@ Together public and private keys ensure information data and communications are 
 
 Non-repudiations means that an individual connot successfully deny involvement in transactions . in the paper world an individual s signature legally binds them to their transactions.in the electronic world, the replacement for the pen based signature is a digital signature. 
 
+## Certificate revocation
 
+Certificate that are no longer trustworthy must be revoked by the CA.
 
+## Cross-Certification
 
+Cross-certification allows different CA domains to establish and maintain trustworthy electronic relationships.
 

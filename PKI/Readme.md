@@ -58,3 +58,4 @@ Certificate that are no longer trustworthy must be revoked by the CA.
 
 Cross-certification allows different CA domains to establish and maintain trustworthy electronic relationships.
 
+Warning: dont lose your everything, be safe be trusty

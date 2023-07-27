@@ -7,10 +7,10 @@ Use Ansible  automation to install software, automate daily task, provision infr
 Ad hoc commands are commands which can be run individually to perform quick functions.  
 Ad hoc commands are not used for configuration management and deployment, because these commands are of one time usage. ansible-playbook is used for configuration management and deployment.
 
-## [Inventory](https://docs.ansible.com/ansible/latest/network/getting_started/first_inventory.html)
+## Inventory
 Ansible is to use an inventory file to organize your managed nodes into the groups with information like the ansible_network_os and the SSH user.running a playbook without an inventory requires several command_line flags.  
 
-invnetory syntax type and grouping syntax  
+inventory syntax type and grouping syntax  
 
 1. in YAML format
 
@@ -50,8 +50,12 @@ spine02
 leafs
 spines
 ```
-### [Dynamic inventory](https://docs.ansible.com/ansible/latest/inventory_guide/intro_dynamic_inventory.htmlS)
+[more information](https://docs.ansible.com/ansible/latest/network/getting_started/first_inventory.html)
+
+### Dynamic inventory
 If your Ansible inventory fluctuates over time, with hosts spinning up and shutting down in response to business demands, the static inventory solutions described in How to build your inventory will not serve your needs. You may need to track hosts from multiple sources: cloud providers, LDAP, Cobbler, and/or enterprise CMDB systems. 
+
+[more information](https://docs.ansible.com/ansible/latest/inventory_guide/intro_dynamic_inventory.htmlS)
 
 ### Inventory variable syntax
 The syntax for variable values is different in inventory, in playbooks, and in the group_vars files, which are covered below. Even though playbook and group_vars files are both written in YAML, you use variables differently in each.  
@@ -111,11 +115,13 @@ inventories/
          stagehost2.yml
 ```
 
-## [Playbook](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks.html)
+## Playbook
 Playbook are one of the core features of Ansible and tell Ansible what to execute.they are like to do list for Ansible that contains a list of tasks.  
-They contain Plays (which are the basic unit of Ansible execution).Playbooks are written in YAML and are easy to read, write, share and understand.
+They contain Plays (which are the basic unit of Ansible execution).Playbooks are written in YAML and are easy to read, write, share and understand.  
 
-### [Playbook structure ](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
+[more information](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks.html)
+
+### Playbook structure 
 Each playbook is an aggregations of one or more plays in it.playbook are structures using plays. There can be more than one play inside a playbook.
 
 ```text
@@ -127,6 +133,8 @@ Block
 
 Task (actions)
 ```
+[more information](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
+
 ### Play
 The main context for Ansible execution, this playbook object maps managed nodes (hosts) to tasks. The Play contains variables, roles and an ordered lists of tasks and can be run repeatedly.
 
@@ -134,7 +142,7 @@ The main context for Ansible execution, this playbook object maps managed nodes 
 Roles provide a framework for fully independent , or interdependent collections of variables,task,templates and modules.  
 in Ansible the role is a primary mechanism for breaking a playbook into multiple files.
 
-#### [Role structure](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html  )
+#### Role structure
 ```yaml
 roles/
     common/               # this hierarchy represents a "role"
@@ -177,12 +185,31 @@ roles/
 
 1. `meta/main.yml` - metadata for the role, including role dependencies and optional Galaxy metadata such as platforms supported.
 
-### [Block](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_blocks.html)
+[more information](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html)
+
+### Block
 Blocks create logical groups of tasks. Blocks also offer ways to handle task errors, similar to exception handling in many programming languages.
+
+[more information](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_blocks.html)
 
 ### Task
 The definition of an ‘action’ to be applied to the managed host.  
 By default, Ansible executes each task in order, one at a time, against all machines matched by the host pattern. Each task executes a module with specific arguments. When a task has executed on all target machines, Ansible moves on to the next task.  
+
+## Ansible vault
+Once you have a strategy for managing and storing vault passwords, you can start encrypting content. You can encrypt two types of content with Ansible Vault: variables and files. Encrypted content always includes the `!vault` tag, which tells Ansible and YAML that the content needs to be decrypted, and a `|` character, which allows multi-line strings. Encrypted content created with `--vault-id` also contains the vault ID label.  
+
+Ansible Vault can encrypt any structured data file used by Ansible, including:
+
+1. group variables files from inventory
+1. host variables files from inventory
+1. variables files passed to ansible-playbook with -e @file.yml or -e @file.json
+1. variables files loaded by include_vars or vars_files
+1. variables files in roles
+1. defaults files in roles
+1. tasks files
+1. handlers files
+1. binary files or other arbitrary files
 
 ## Install
 install on ubuntu 20.04
@@ -192,7 +219,7 @@ $ sudo apt install software-properties-common
 $ sudo add-apt-repository --yes --update ppa:ansible/ansible
 $ sudo apt install ansible
 ```
-## [CLI workflow](https://docs.ansible.com/ansible/latest/command_guide/command_line_tools.html)
+## CLI workflow
 
 1. ansible
 1. ansible-config
@@ -203,6 +230,8 @@ $ sudo apt install ansible
 1. ansible-playbook
 1. ansible-pull
 1. ansible-vault
+
+[more information](https://docs.ansible.com/ansible/latest/command_guide/command_line_tools.html)
 
 ### ansible
 is an extra-simple tool/framework/API for doing ‘remote things’. this command allows you to define and run a single task ‘playbook’ against a set of hosts.
@@ -292,13 +321,13 @@ displays information on modules installed in Ansible libraries.
 
 #### sample usage
 
--F, --list_files
+-F, --list_files  
 Show plugin names and their source files without summaries (implies –list). A supplied argument will be used for filtering, can be a namespace or full collection name.
 
--j, --json
+-j, --json  
 Change output into json format.
 
--l, --list
+-l, --list  
 List available plugins. A supplied argument will be used for filtering, can be a namespace or full collection name.
 
 ```shell
@@ -335,8 +364,8 @@ Command to manage Ansible roles and collections.
 #### sample usage
 
 ```shell
-ansible-galaxy role list -p roles/
-ansible-galaxy role init /path/to/new_role_name
+$ ansible-galaxy role list -p roles/
+$ ansible-galaxy role init /path/to/new_role_name
 ```
 [more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-galaxy.html)
 
@@ -346,38 +375,162 @@ used to display or dump the configured inventory as Ansible sees it
 #### sample usage
 -y, --yaml   
 Use YAML format instead of default JSON, ignored for –graph
+
 -i, --inventory, --inventory-file   
 specify inventory host path or comma separated host list. –inventory-file is deprecated  
+
 --vault-password-file, --vault-pass-file   
 vault password file  
+
 --vars   
 Add vars to graph display, ignored unless used with –graph    
+
 --output    
 When doing –list, send the inventory to a file instead of to the screen  
+
 --export    
 When doing an –list, represent in a way that is optimized for export,not as an accurate representation of how Ansible has processed it  
+
 --graph   
 create inventory graph, if supplying pattern it must be a valid group name. It will ignore limit  
+
 --host    
 Output specific host info, works as inventory script. It will ignore limit  
+
 --list   
 Output all hosts info, works as inventory script  
 
 ```shell
-ansible-inventory --list
-ansible-inventory --list --ask-vault-pass
-ansible-inventory --host 192.168.10.10
-ansible-inventory --graph
-ansible-inventory --graph app
-ansible-inventory  --list --output inventroy_file.json
-ansible-inventory --graph  --vars
-ansible-inventory -i inventory/sample_inv_file --list
-ansible-inventory -i inventory/sample_inv_file --list --yaml
+$ ansible-inventory --list
+$ ansible-inventory --list --ask-vault-pass
+$ ansible-inventory --host 192.168.10.10
+$ ansible-inventory --graph
+$ ansible-inventory --graph app
+$ ansible-inventory  --list --output inventory_file.json
+$ ansible-inventory --graph  --vars
+$ ansible-inventory -i inventory/sample_inv_file --list
+$ ansible-inventory -i inventory/sample_inv_file --list --yaml
 ```
 [more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-inventory.html)
 
-### [ansible-playbook](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html)
+### ansible-playbook
+the tool to run Ansible playbooks, which are a configuration and multinode deployment system.  
 
+#### sample usage
+--ask-vault-password, --ask-vault-pass  
+ask for vault password  
+
+--become-method   
+privilege escalation method to use (default=sudo), use ansible-doc -t become -l to list valid choices.  
+
+--become-password-file , --become-pass-file   
+Become password file  
+
+--become-user   
+run operations as this user (default=root)  
+
+--list-hosts  
+outputs a list of matching hosts; does not execute anything else  
+
+--list-tags  
+list all available tags  
+
+--list-tasks  
+list all tasks that would be executed  
+
+--private-key , --key-file   
+use this file to authenticate the connection  
+
+--skip-tags  
+only run plays and tasks whose tags do not match these values  
+
+--start-at-task   
+start the playbook at the task matching this name  
+
+--step  
+one-step-at-a-time: confirm each task before running  
+
+--syntax-check  
+perform a syntax check on the playbook, but do not execute it  
+
+-C, --check  
+don’t make any changes; instead, try to predict some of the changes that may occur  
+
+-D, --diff  
+when changing (small) files and templates, show the differences in those files; works great with –check  
+
+-K, --ask-become-pass  
+ask for privilege escalation password  
+
+-i, --inventory, --inventory-file  
+specify inventory host path or comma separated host list. –inventory-file is deprecated  
+
+-k, --ask-pass  
+ask for connection password  
+
+-l , --limit   
+further limit selected hosts to an additional pattern  
+
+-t, --tags  
+only run plays and tasks tagged with these values  
+
+-u , --user   
+connect as this user (default=None)  
+
+
+```shell
+$ ansible-playbook -i inventory/sample_inv_file playbook_getInfo.yml --step --ask-vault-pass
+$ ansible-playbook  playbook_user_management.yml --list-tasks
+$ ansible-inventory -i inventory/sample_inv_file --list --yaml --ask-vault-pass
+$ ansible-playbook playbook_check.yml --list-tags
+$ ansible-playbook -i inventory/sample_inv_file playbook_getInfo.yml --syntax-check
+```
+
+[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html)
+
+### ansible-pull
+Used to pull a remote copy of ansible on each managed node, each set to run via cron and update playbook source via a source repository.  
+
+[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-pull.html)
+
+### ansible-vault
+can encrypt any structured data file used by Ansible. This can include group_vars/ or host_vars/ inventory variables, variables loaded by include_vars or vars_files, or variable files passed on the ansible-playbook command line with -e @file.yml or -e @file.json. Role variables and defaults are also included!
+
+Because Ansible tasks, handlers, and other objects are data, these can also be encrypted with vault. If you’d like to not expose what variables you are using, you can keep an individual task file entirely encrypted.
+
+
+1. create : Create new vault encrypted file
+1. decrypt : Decrypt vault encrypted file
+1. edit : Edit vault encrypted file
+1. view : View vault encrypted file
+1. encrypt : Encrypt YAML file
+1. encrypt_string : Encrypt a string
+1. rekey : Re-key a vault encrypted file
+
+#### sample usage
+
+--ask-vault-password, --ask-vault-pass  
+ask for vault password
+
+--encrypt-vault-id    
+the vault id used to encrypt (required if more than one vault-id is provided)
+
+--vault-id  
+the vault identity to use
+
+--vault-password-file, --vault-pass-file  
+vault password file
+
+```shell
+ansible-vault create inventory/group_vars/sample_group_vars_file.yml
+ansible-vault encrypt inventory/group_vars/sample_group_vars_file.yml
+ansible-vault decrypt inventory/group_vars/sample_group_vars_file.yml
+ansible-vault edit inventory/group_vars/sample_group_vars_file.yml
+ansible-vault view inventory/group_vars/sample_group_vars_file.yml
+ansible-vault view inventory/group_vars/sample_group_vars_file.yml
+```
+
+[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html)
 
 ## source
 related:  

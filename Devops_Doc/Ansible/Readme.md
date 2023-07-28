@@ -50,12 +50,12 @@ spine02
 leafs
 spines
 ```
-[more information](https://docs.ansible.com/ansible/latest/network/getting_started/first_inventory.html)
+[More informations](https://docs.ansible.com/ansible/latest/network/getting_started/first_inventory.html)
 
 ### Dynamic inventory
 If your Ansible inventory fluctuates over time, with hosts spinning up and shutting down in response to business demands, the static inventory solutions described in How to build your inventory will not serve your needs. You may need to track hosts from multiple sources: cloud providers, LDAP, Cobbler, and/or enterprise CMDB systems. 
 
-[more information](https://docs.ansible.com/ansible/latest/inventory_guide/intro_dynamic_inventory.htmlS)
+[More informations](https://docs.ansible.com/ansible/latest/inventory_guide/intro_dynamic_inventory.htmlS)
 
 ### Inventory variable syntax
 The syntax for variable values is different in inventory, in playbooks, and in the group_vars files, which are covered below. Even though playbook and `group_vars` files are both written in YAML, you use variables differently in each.  
@@ -119,7 +119,7 @@ inventories/
 Playbook are one of the core features of Ansible and tell Ansible what to execute.they are like to do list for Ansible that contains a list of tasks.  
 They contain Plays (which are the basic unit of Ansible execution).Playbooks are written in YAML and are easy to read, write, share and understand.  
 
-[more information](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks.html)
+[More informations](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks.html)
 
 ### Playbook structure 
 Each playbook is an aggregations of one or more plays in it.playbook are structures using plays. There can be more than one play inside a playbook.
@@ -133,14 +133,146 @@ Block
 
 Task (actions)
 ```
-[more information](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
+
+[More informations](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
 
 ### Play
 The main context for Ansible execution, this playbook object maps managed nodes (hosts) to tasks. The Play contains variables, roles and an ordered lists of tasks and can be run repeatedly.
 
+#### sample
+
+name  
+Identifier. Can be used for documentation, or in tasks/handlers.
+
+hosts  
+A list of groups, hosts or host pattern that translates into a list of hosts that are the play’s target.
+
+gather_facts  
+A boolean that controls if the play will automatically run the ‘setup’ task to gather facts for the hosts.
+
+become  
+Boolean that controls if privilege escalation is used or not on Task execution.
+
+become_user
+User that you ‘become’ after using privilege escalation. The remote/login user must have permissions to become this user.
+
+remote_user  
+User used to log into the target via the connection plugin.
+
+vars  
+Dictionary/map of variables  
+
+vars_files  
+List of files that contain vars to include in the play.  
+
+pre_tasks  
+A list of tasks to execute before roles.
+
+roles  
+List of roles to be imported into the play
+
+tasks  
+Main list of tasks to execute in the play, they run after roles and before post_tasks.
+
+post_tasks  
+A list of tasks to execute after the tasks section.
+
+```yml
+---
+- name: play sample 1
+  hosts: all
+  gather_facts: true
+  become: true
+  become_user: root
+  remote_user: hani
+  pre_tasks:
+    - name: take out of load balancer pool
+      ansible.builtin.command: /usr/bin/take_out_of_pool {{ inventory_hostname }}
+      delegate_to: 127.0.0.1
+  roles:
+     - monitoring
+  tasks:
+     - ansible.builtin.script: /srv/qa_team/app_testing_script.sh --server {{ inventory_hostname }}
+       delegate_to: testing_server
+  post_tasks:
+    - name: add back to load balancer pool
+      ansible.builtin.command: /usr/bin/add_back_to_pool {{ inventory_hostname }}
+      delegate_to: 127.0.0.1
+      
+- name: play sample 2
+  hosts: webservers
+  gather_facts: false
+  become: false
+  vars:
+    my_var: "Hello, World!"
+  vars_files:
+    - vars/common_vars.yml
+  roles:
+     - common
+     - webserver
+
+- name: play sample 3
+  hosts: my_servers
+  vars:
+    my_var: "Hello, World!"
+  environment:
+    MY_ENV_VAR: "example"
+  vars_prompt:
+    - name: my_prompt_var
+      prompt: "Enter a value for my_prompt_var"
+  tasks:
+    - name: Task 1
+      shell: echo "{{ my_var }}"
+    - name: Task 2
+      debug:
+        msg: "Running task 2"
+      notify: restart_service
+  handlers:
+    - name: restart_service
+      service:
+        name: my_service
+        state: restarted
+  roles:
+    - common
+    - webserver
+  tags:
+    - setup
+    - web
+  any_errors_fatal: true
+  max_fail_percentage: 10
+  serial:
+    - 1
+    - 2
+  ignore_errors: yes
+  ignore_unreachable: yes
+  order: sorted
+  strategy: free
+```
+
+[More variable](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
+
 ### Role
 Roles provide a framework for fully independent , or interdependent collections of variables,task,templates and modules.  
 in Ansible the role is a primary mechanism for breaking a playbook into multiple files.
+
+#### sample
+when
+Conditional expression, determines if an iteration of a task is run or not.
+
+tags
+Tags applied to the task or included tasks, this allows selecting subsets of tasks from the command line.
+
+```yaml
+- name: Example playbook with role
+  hosts: my_servers
+  gather_facts: true
+  roles:
+    - role: my_role
+      when: some_condition
+      tags:
+        - tag1
+```
+[More variable](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
 
 #### Role structure
 ```yaml
@@ -185,16 +317,85 @@ roles/
 
 1. `meta/main.yml` - metadata for the role, including role dependencies and optional Galaxy metadata such as platforms supported.
 
-[more information](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html)
+[More informations](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html)
 
 ### Block
 Blocks create logical groups of tasks. Blocks also offer ways to handle task errors, similar to exception handling in many programming languages.
 
-[more information](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_blocks.html)
+#### sample
+always
+List of tasks, in a block, that execute no matter if there is an error in the block or not.
+
+block
+List of tasks in a block.
+
+rescue
+List of tasks in a block that run if there is a task error in the main block list.
+```yaml
+- name: Example playbook with block
+  hosts: my_servers
+  gather_facts: true
+
+  tasks:
+    - name: Task 1
+      block:
+        - name: Task 1.1
+          debug:
+            msg: "Running Task 1.1"
+        - name: Task 1.2
+          debug:
+            msg: "Running Task 1.2"
+      rescue:
+        - name: Rescue Task
+          debug:
+            msg: "Rescue Task executed"
+      always:
+        - name: Always Task
+          debug:
+            msg: "Always Task executed"
+
+    - name: Task 2
+      debug:
+        msg: "Running Task 2"
+```
+[More variable](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
+
+[More informations](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_blocks.html)
 
 ### Task
 The definition of an ‘action’ to be applied to the managed host.  
 By default, Ansible executes each task in order, one at a time, against all machines matched by the host pattern. Each task executes a module with specific arguments. When a task has executed on all target machines, Ansible moves on to the next task.  
+
+#### sample
+
+```yaml
+- name: Example task with all key samples
+  hosts: my_servers
+  gather_facts: true
+
+  tasks:
+    - name: Task 1
+      shell: echo "Hello, World!"
+      args:
+        chdir: /path/to/directory
+        creates: /path/to/file
+        executable: /path/to/script.sh
+        warn: false
+      register: result
+      failed_when: result.rc != 0
+      changed_when: result.stdout != "Hello, World!"
+      no_log: true
+      ignore_errors: true
+      delegate_to: backup_server
+      run_once: true
+      async: 60
+      poll: 10
+      until: result.stdout == "Hello, World!"
+      retries: 3
+      delay: 5
+      when: ansible_facts['distribution'] == 'Ubuntu'
+```
+[More variable](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
 
 ## Ansible vault
 Once you have a strategy for managing and storing vault passwords, you can start encrypting content. You can encrypt two types of content with Ansible Vault: variables and files. Encrypted content always includes the `!vault` tag, which tells Ansible and YAML that the content needs to be decrypted, and a `|` character, which allows multi-line strings. Encrypted content created with `--vault-id` also contains the vault ID label.  
@@ -211,6 +412,35 @@ Ansible Vault can encrypt any structured data file used by Ansible, including:
 1. handlers files
 1. binary files or other arbitrary files
 
+## Ansible config
+
+Changes can be made and used in a configuration file which will be searched for in the following order:
+
+1. `ANSIBLE_CONFIG` (environment variable if set)
+
+1. `ansible.cfg` (in the current directory)
+
+1. `~/.ansible.cfg` (in the home directory)
+
+1. `/etc/ansible/ansible.cfg`
+
+### sample
+creating a sample ansible.cfg file in current directory
+
+```INI
+[defaults]
+host_key_checking = False
+forks = 40
+timeout = 60
+inventory = ./inventory/
+# Use the YAML callback plugin.
+stdout_callback = yaml
+# Use the stdout_callback when running ad-hoc commands.
+bin_ansible_callbacks = True
+```
+
+[More informations and environment variables](https://docs.ansible.com/ansible/latest/reference_appendices/config.html)
+
 
 ## Install
 install on ubuntu 20.04
@@ -221,7 +451,7 @@ $ sudo add-apt-repository --yes --update ppa:ansible/ansible
 $ sudo apt install ansible
 ```
 
-[more information](https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html)
+[More informations](https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html)
 
 ## CLI workflow
 
@@ -236,7 +466,7 @@ $ sudo apt install ansible
 1. ansible-vault
 2. ansible-test
 
-[more information](https://docs.ansible.com/ansible/latest/command_guide/command_line_tools.html)
+[More informations](https://docs.ansible.com/ansible/latest/command_guide/command_line_tools.html)
 
 ### ansible
 is an extra-simple tool/framework/API for doing ‘remote things’. this command allows you to define and run a single task ‘playbook’ against a set of hosts.
@@ -272,7 +502,7 @@ $ ansible -i inventory/path/to/file inventory_group_name -m ping --ask-vault-pas
 $ ansible all -m ansible.builtin.setup
 ```
 
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible.html)
 
 ### ansible-config
 Config command line class
@@ -291,7 +521,7 @@ $ ansible-config view
 $ ansible-config init
 ```
 
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-config.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible-config.html)
 
 
 ### ansible-console
@@ -299,20 +529,20 @@ A REPL that allows for running ad-hoc tasks against a chosen inventory from a ni
 
 It supports several commands, and you can modify its configuration at runtime:  
 
-1. cd [pattern] : change host/group (you can use host patterns eg.: app*.dc*:!app01*)
+1. cd "pattern" : change host/group (you can use host patterns eg.: app*.dc*:!app01*)
 2. list : list available hosts in the current path
 3. list groups : list groups included in the current path
 4. become : toggle the become flag
 5. ! : forces shell module instead of the ansible module (!yum update -y)
-6. verbosity [num] : set the verbosity level
-7. forks [num] : set the number of forks
-8. become_user [user] : set the become_user
-9.  remote_user [user] : set the remote_user
-10. become_method [method] : set the privilege escalation method
-11. check [bool] : toggle check mode
-12. diff [bool] : toggle diff mode
-13. timeout [integer] : set the timeout of tasks in seconds (0 to disable)
-14. help [command/module] : display documentation for the command or module
+6. verbosity "num" : set the verbosity level
+7. forks "num" : set the number of forks
+8. become_user "user" : set the become_user
+9.  remote_user "user" : set the remote_user
+10. become_method "method" : set the privilege escalation method
+11. check "bool" : toggle check mode
+12. diff "bool" : toggle diff mode
+13. timeout "integer" : set the timeout of tasks in seconds (0 to disable)
+14. help "command/module" : display documentation for the command or module
 15. exit : exit ansible-console
 
 #### sample usage
@@ -320,7 +550,7 @@ It supports several commands, and you can modify its configuration at runtime:
 ```shell
 $ ansible-console
 ```
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-console.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible-console.html)
 
 ### ansible-doc
 displays information on modules installed in Ansible libraries. 
@@ -343,7 +573,7 @@ $ ansible-doc -j -F
 $ ansible-doc -j -l
 $ ansible-doc -l
 ```
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-doc.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible-doc.html)
 
 ### ansible-galaxy
 Command to manage Ansible roles and collections.
@@ -373,7 +603,7 @@ Command to manage Ansible roles and collections.
 $ ansible-galaxy role list -p roles/
 $ ansible-galaxy role init /path/to/new_role_name
 ```
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-galaxy.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible-galaxy.html)
 
 ### ansible-inventory
 used to display or dump the configured inventory as Ansible sees it
@@ -417,7 +647,7 @@ $ ansible-inventory --graph  --vars
 $ ansible-inventory -i inventory/sample_inv_file --list
 $ ansible-inventory -i inventory/sample_inv_file --list --yaml
 ```
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-inventory.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible-inventory.html)
 
 ### ansible-playbook
 the tool to run Ansible playbooks, which are a configuration and multinode deployment system.  
@@ -492,12 +722,12 @@ $ ansible-playbook playbook_check.yml --list-tags
 $ ansible-playbook -i inventory/sample_inv_file playbook_getInfo.yml --syntax-check
 ```
 
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html)
 
 ### ansible-pull
 Used to pull a remote copy of ansible on each managed node, each set to run via cron and update playbook source via a source repository.  
 
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-pull.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible-pull.html)
 
 ### ansible-vault
 can encrypt any structured data file used by Ansible. This can include group_vars/ or host_vars/ inventory variables, variables loaded by include_vars or vars_files, or variable files passed on the ansible-playbook command line with -e @file.yml or -e @file.json. Role variables and defaults are also included!
@@ -556,7 +786,6 @@ ansible-vault decrypt foo.yml
 ansible-vault edit foo.yml
 ansible-vault view foo.yml
 ansible-vault rekey foo.yml bar.yml baz.yml
-
 ansible-vault encrypt_string  'foobar' --name 'the_secret'
 ```
 For example, to encrypt the string ‘foobar’ using the only password stored in ‘a_password_file’ and name the variable ‘the_secret’:
@@ -566,7 +795,7 @@ $ echo "some string in file" > a_password_file
 $ ansible-vault encrypt_string --vault-password-file a_password_file 'foobar' --name 'the_secret'
 ```
 The command above creates this content:
-```
+```yaml
 the_secret: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       62313365396662343061393464336163383764373764613633653634306231386433626436623361
@@ -580,7 +809,7 @@ To encrypt the string ‘foooodev’, add the vault ID label ‘dev’ with the 
 $ ansible-vault encrypt_string --vault-id dev@a_password_file 'foooodev' --name 'the_dev_secret'
 ```
 The command above creates this content:
-```shell
+```yaml
 the_dev_secret: !vault |
           $ANSIBLE_VAULT;1.2;AES256;dev
           30613233633461343837653833666333643061636561303338373661313838333565653635353162
@@ -591,12 +820,12 @@ the_dev_secret: !vault |
 ```
 > warning : if you use vim or Emacs you should secure your editor for more information follow below link 
 
-[more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html)
+[More information and options](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html)
 
 ### ansible-test
 As automation becomes crucial for more and more business cases, there is an increased need to test the automation code itself. This is where ansible-test comes in: developers who want to test their Ansible Content Collections for sanity, unit and integration tests can use  ansible-test  to achieve testing workflows that integrate with source code repositories.
 
-[more information and options](https://www.ansible.com/blog/introduction-to-ansible-test)
+[More information and options](https://www.ansible.com/blog/introduction-to-ansible-test)
   
 
 

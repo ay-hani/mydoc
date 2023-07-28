@@ -8,7 +8,7 @@ Ad hoc commands are commands which can be run individually to perform quick func
 Ad hoc commands are not used for configuration management and deployment, because these commands are of one time usage. ansible-playbook is used for configuration management and deployment.
 
 ## Inventory
-Ansible is to use an inventory file to organize your managed nodes into the groups with information like the ansible_network_os and the SSH user.running a playbook without an inventory requires several command_line flags.  
+Ansible is to use an inventory file to organize your managed nodes into the groups with information like the `ansible_network_os` and the SSH user.running a playbook without an inventory requires several command_line flags.  
 
 inventory syntax type and grouping syntax  
 
@@ -58,7 +58,7 @@ If your Ansible inventory fluctuates over time, with hosts spinning up and shutt
 [more information](https://docs.ansible.com/ansible/latest/inventory_guide/intro_dynamic_inventory.htmlS)
 
 ### Inventory variable syntax
-The syntax for variable values is different in inventory, in playbooks, and in the group_vars files, which are covered below. Even though playbook and group_vars files are both written in YAML, you use variables differently in each.  
+The syntax for variable values is different in inventory, in playbooks, and in the group_vars files, which are covered below. Even though playbook and `group_vars` files are both written in YAML, you use variables differently in each.  
 
 1. in YAML format
 ```yaml
@@ -203,13 +203,14 @@ Ansible Vault can encrypt any structured data file used by Ansible, including:
 
 1. group variables files from inventory
 1. host variables files from inventory
-1. variables files passed to ansible-playbook with -e @file.yml or -e @file.json
-1. variables files loaded by include_vars or vars_files
+1. variables files passed to ansible-playbook with `-e @file.yml or` `-e @file.json`
+1. variables files loaded by `include_vars` or `vars_files`
 1. variables files in roles
 1. defaults files in roles
 1. tasks files
 1. handlers files
 1. binary files or other arbitrary files
+
 
 ## Install
 install on ubuntu 20.04
@@ -219,6 +220,9 @@ $ sudo apt install software-properties-common
 $ sudo add-apt-repository --yes --update ppa:ansible/ansible
 $ sudo apt install ansible
 ```
+
+[more information](https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html)
+
 ## CLI workflow
 
 1. ansible
@@ -230,6 +234,7 @@ $ sudo apt install ansible
 1. ansible-playbook
 1. ansible-pull
 1. ansible-vault
+2. ansible-test
 
 [more information](https://docs.ansible.com/ansible/latest/command_guide/command_line_tools.html)
 
@@ -292,22 +297,23 @@ $ ansible-config init
 ### ansible-console
 A REPL that allows for running ad-hoc tasks against a chosen inventory from a nice shell with built-in tab completion (based on dominis’ ansible-shell).
 
-1. It supports several commands, and you can modify its configuration at runtime:
-2. cd [pattern]: change host/group (you can use host patterns eg.: app*.dc*:!app01*)
-3. list: list available hosts in the current path
-4. list groups: list groups included in the current path
-5. become: toggle the become flag
-6. !: forces shell module instead of the ansible module (!yum update -y)
-7. verbosity [num]: set the verbosity level
-8. forks [num]: set the number of forks
-9. become_user [user]: set the become_user
-10. remote_user [user]: set the remote_user
-11. become_method [method]: set the privilege escalation method
-12. check [bool]: toggle check mode
-13. diff [bool]: toggle diff mode
-14. timeout [integer]: set the timeout of tasks in seconds (0 to disable)
-15. help [command/module]: display documentation for the command or module
-16. exit: exit ansible-console
+It supports several commands, and you can modify its configuration at runtime:  
+
+1. cd [pattern] : change host/group (you can use host patterns eg.: app*.dc*:!app01*)
+2. list : list available hosts in the current path
+3. list groups : list groups included in the current path
+4. become : toggle the become flag
+5. ! : forces shell module instead of the ansible module (!yum update -y)
+6. verbosity [num] : set the verbosity level
+7. forks [num] : set the number of forks
+8. become_user [user] : set the become_user
+9.  remote_user [user] : set the remote_user
+10. become_method [method] : set the privilege escalation method
+11. check [bool] : toggle check mode
+12. diff [bool] : toggle diff mode
+13. timeout [integer] : set the timeout of tasks in seconds (0 to disable)
+14. help [command/module] : display documentation for the command or module
+15. exit : exit ansible-console
 
 #### sample usage
 
@@ -507,6 +513,28 @@ Because Ansible tasks, handlers, and other objects are data, these can also be e
 1. encrypt_string : Encrypt a string
 1. rekey : Re-key a vault encrypted file
 
+#### what is vault-id in ansible-vault option
+
+vault id has two type
+
+1. `--vault-id label@path/to/pass_file`  
+this command option read password from pass_file to encrypt foo.yml
+
+sample:
+
+```shell
+--vault-id dev@my_pass_file foo.yml
+```
+
+1. `--vault-id label@prompt`  
+this command option read password from prompt to encrypt foo.yml
+
+sample:
+
+```shell
+--vault-id stage@prompt foo.yml
+```
+
 #### sample usage
 
 --ask-vault-password, --ask-vault-pass  
@@ -516,24 +544,59 @@ ask for vault password
 the vault id used to encrypt (required if more than one vault-id is provided)
 
 --vault-id  
-the vault identity to use
+the vault identity to use  
 
 --vault-password-file, --vault-pass-file  
 vault password file
 
 ```shell
-ansible-vault create inventory/group_vars/sample_group_vars_file.yml
-ansible-vault encrypt inventory/group_vars/sample_group_vars_file.yml
-ansible-vault decrypt inventory/group_vars/sample_group_vars_file.yml
-ansible-vault edit inventory/group_vars/sample_group_vars_file.yml
-ansible-vault view inventory/group_vars/sample_group_vars_file.yml
-ansible-vault view inventory/group_vars/sample_group_vars_file.yml
+ansible-vault create foo.yml
+ansible-vault encrypt foo.yml
+ansible-vault decrypt foo.yml
+ansible-vault edit foo.yml
+ansible-vault view foo.yml
+ansible-vault rekey foo.yml bar.yml baz.yml
+
+ansible-vault encrypt_string  'foobar' --name 'the_secret'
 ```
+For example, to encrypt the string ‘foobar’ using the only password stored in ‘a_password_file’ and name the variable ‘the_secret’:
+
+```shell
+$ echo "some string in file" > a_password_file
+$ ansible-vault encrypt_string --vault-password-file a_password_file 'foobar' --name 'the_secret'
+```
+The command above creates this content:
+```
+the_secret: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      62313365396662343061393464336163383764373764613633653634306231386433626436623361
+      6134333665353966363534333632666535333761666131620a663537646436643839616531643561
+      63396265333966386166373632626539326166353965363262633030333630313338646335303630
+      3438626666666137650a353638643435666633633964366338633066623234616432373231333331
+      6564
+```
+To encrypt the string ‘foooodev’, add the vault ID label ‘dev’ with the ‘dev’ vault password stored in ‘a_password_file’, and call the encrypted variable ‘the_dev_secret’:
+```shell
+$ ansible-vault encrypt_string --vault-id dev@a_password_file 'foooodev' --name 'the_dev_secret'
+```
+The command above creates this content:
+```shell
+the_dev_secret: !vault |
+          $ANSIBLE_VAULT;1.2;AES256;dev
+          30613233633461343837653833666333643061636561303338373661313838333565653635353162
+          3263363434623733343538653462613064333634333464660a663633623939393439316636633863
+          61636237636537333938306331383339353265363239643939666639386530626330633337633833
+          6664656334373166630a363736393262666465663432613932613036303963343263623137386239
+          6330
+```
+> warning : if you use vim or Emacs you should secure your editor for more information follow below link 
 
 [more information and options](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html)
 
-## source
-related:  
-https://www.tutorialspoint.com/ansible/index.htm  
-https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html
+### ansible-test
+As automation becomes crucial for more and more business cases, there is an increased need to test the automation code itself. This is where ansible-test comes in: developers who want to test their Ansible Content Collections for sanity, unit and integration tests can use  ansible-test  to achieve testing workflows that integrate with source code repositories.
+
+[more information and options](https://www.ansible.com/blog/introduction-to-ansible-test)
+  
+
 
